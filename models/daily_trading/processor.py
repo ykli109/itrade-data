@@ -107,7 +107,7 @@ class DailyTradingProcessor:
                     how='left', 
                     indicator=True
                 )
-                combined_df = combined_df.query('_merge == “left_only”').drop('_merge', axis=1)
+                combined_df = combined_df.query('_merge == "left_only"').drop('_merge', axis=1)
                 logger.info(f"已过滤 {len(existing_data)} 条重复数据")
             
             if not combined_df.empty:

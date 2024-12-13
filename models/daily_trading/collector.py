@@ -22,11 +22,11 @@ class DailyTradingCollector:
         """获取单个股票数据"""
         try:
             if not start_date:
-                start_date = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+                start_date = datetime.now().strftime('%Y%m%d')
             if not end_date:
-                end_date = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+                end_date = datetime.now().strftime('%Y%m%d')
             
-            print(f'获取{stock_code}{stock_name if stock_name else ""}')
+            # print(f'获取{stock_code}{stock_name if stock_name else ""}')
             df = ak.stock_zh_a_hist(symbol=stock_code, start_date=start_date, end_date=end_date, adjust='qfq')
             return df
         except Exception as e:
