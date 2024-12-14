@@ -18,4 +18,5 @@ DB_CONFIG = {
 TABLE_NAMES = {
     'daily_trading': 'stock_daily_trading',
     'trade_date': 'stock_trade_date',
+    'lhb_detail': 'stock_lhb_detail',
 } 

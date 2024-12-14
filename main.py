@@ -1,19 +1,25 @@
 from loguru import logger
 from models.daily_trading import DailyTrading
 from models.trade_date import TradeDate
+from models.lhb_detail import Lhb
 
 MODELS = {
-    '1': ('股票日线数据-所有', DailyTrading),
+    '1': ('股票日线数据-历史', DailyTrading),
     '2': ('股票日线数据-当日', DailyTrading),
-    '3': ('交易日历数据', TradeDate),
+    '3': ('龙虎榜-当日', Lhb),
+    '4': ('龙虎榜-历史', Lhb),
+    '5': ('交易日历数据', TradeDate),
 }
 
 def init_table(choice):
     """根据选择初始化对应的数据表"""
     if choice in MODELS:
         _, model = MODELS[choice]
-        model.init_table()
-        logger.info(f"初始化数据表: {model.get_description()}")
+        res = model.init_table()
+        if res == False:
+            return
+        else:
+            logger.info(f"初始化数据表: {model.get_description()}")
 
 def show_menu():
     """显示菜单"""
@@ -40,7 +46,8 @@ def main():
                 # 在执行更新操作前初始化对应的数据表
                 init_table(choice)
                 
-                if choice == '1':
+                # 1 或者 4 更新所有数据
+                if choice == '1' or choice == '4':
                     res = model.update_all()
                 elif choice == '2':
                     res = model.update()

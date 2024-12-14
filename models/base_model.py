@@ -17,6 +17,9 @@ class BaseModel(ABC):
     @classmethod
     def init_table(cls):
         """初始化数据表"""
-        db = DatabaseManager()
-        create_table_sql = cls.get_schema().get_create_table_sql()
-        db.create_table(create_table_sql) 
+        try:
+            db = DatabaseManager()
+            create_table_sql = cls.get_schema().get_create_table_sql()
+            db.create_table(create_table_sql)
+        except AttributeError:
+            return False
