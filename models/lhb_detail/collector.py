@@ -13,7 +13,7 @@ class LhbCollector:
     def get_lhb_data(self, start_date: str = None, end_date: str = None, stock_name: str = None):
         """获取单个股票数据"""
         try:
-            latest_trade_date = TradeDate.get_latest_trade_date()
+            latest_trade_date = TradeDate.get_latest_trade_date(need_close=True)
             if not start_date:
                 start_date = latest_trade_date
             if not end_date:
