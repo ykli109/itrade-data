@@ -1,7 +1,18 @@
 import pandas as pd
+import numpy as np
 from loguru import logger
 from common.database import DatabaseManager
 from config.settings import TABLE_NAMES
+
+def strict_round(number, ndigits=0):
+    """
+    严格的四舍五入
+    :param number: 要舍入的数字
+    :param ndigits: 保留的小数位数
+    :return: 舍入后的结果
+    """
+    factor = 10 ** ndigits
+    return int(number * factor + 0.5) / factor
 
 class DailyTradingProcessor:
     def __init__(self):
@@ -14,19 +25,19 @@ class DailyTradingProcessor:
             return df
         
         # 重命名列
-        # '日期', '股票代码', '开盘', '收盘', '最高', '最低', '成交量', '成交额', '振幅', '涨跌幅', '涨跌额', '换手率'
+         # '日期', '股票代码', '开盘', '收盘', '最高', '最低', '成交量', '成交额', '振幅', '涨跌幅', '涨跌额', '换手率'
         df = df.rename(columns={
             '日期': 'trade_date',
-            '股票代码': 'stock_code',  # 添加股票代码
+            '股票代码': 'stock_code',
             '开盘': 'open_price',
             '最高': 'high_price',
             '最低': 'low_price',
             '收盘': 'close_price',
             '成交量': 'volume',
             '成交额': 'amount',
-            '振幅': 'amplitude',  # 添加振幅
+            '振幅': 'amplitude',
             '涨跌幅': 'change_percent',
-            '涨跌额': 'change_amount',  # 添加涨跌额
+            '涨跌额': 'change_amount',
             '换手率': 'turnover_rate'
         })
 
@@ -37,10 +48,33 @@ class DailyTradingProcessor:
         df['trade_date'] = pd.to_datetime(df['trade_date']).dt.date
 
         # 增加一个id用来定义唯一数据（日期+股票代码）
-        df['id'] = df['trade_date'].astype(str) + '_' + df['stock_code']  # 使用日期和股票代码组合生成唯一id
+        df['id'] = df['trade_date'].astype(str) + '_' + df['stock_code']
+
+        # 获取前一日的收盘价
+        df['prev_close'] = df['close_price'].shift(1)
+
+        # 设置默认涨跌幅限制为10%
+        df['limit_percent'] = 10
+
+        # 更新ST股票的涨跌幅限制为5%
+        df.loc[df['stock_name'].str.contains('ST', na=False), 'limit_percent'] = 5
+
+        # 更新创业板和科创板的涨跌幅限制为20%
+        df.loc[df['stock_code'].str.startswith(('688', '300')), 'limit_percent'] = 20
+
+        # 计算涨停价和跌停价
+        df['up_limit'] = (df['prev_close'] * (1 + df['limit_percent'] / 100)).round(2)
+        df['down_limit'] = (df['prev_close'] * (1 - df['limit_percent'] / 100)).round(2)
+
+        # 判断是否涨停或跌停（考虑价格波动的误差范围）
+        price_tolerance = 0  # 0分钱的误差范围
+        df['is_up_limit'] = (np.abs(df['close_price'] - df['up_limit']) <= price_tolerance).astype(int)
+        df['is_down_limit'] = (np.abs(df['close_price'] - df['down_limit']) <= price_tolerance).astype(int)
+
+        # 删除临时列
+        df = df.drop(['limit_percent', 'up_limit', 'down_limit'], axis=1)
 
         return df
-
     def save_to_db(self, df: pd.DataFrame):
         """保存数据到数据库"""
         try:

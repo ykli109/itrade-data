@@ -27,7 +27,7 @@ class DailyTradingCollector:
                 end_date = datetime.now().strftime('%Y%m%d')
             
             # print(f'获取{stock_code}{stock_name if stock_name else ""}')
-            df = ak.stock_zh_a_hist(symbol=stock_code, start_date=start_date, end_date=end_date, adjust='qfq')
+            df = ak.stock_zh_a_hist(symbol=stock_code, start_date=start_date, end_date=end_date, adjust='')
             return df
         except Exception as e:
             logger.error(f"获取股票{stock_code}数据失败: {str(e)}")
