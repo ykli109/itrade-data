@@ -54,12 +54,13 @@ class DailyTrading(BaseModel):
             return False
 
         processed_dfs = []  # 用于存储处理后的数据框
-        batch_size = 100  # 每100个股票的数据作为一批次处理
+        batch_size = 1000  # 每1000个股票的数据作为一批次处理
 
+        print('开始更新历史股票数据')
         # 添加进度条
         with tqdm(total=len(stock_list), desc="更新历史股票数据") as pbar:
             for idx, row in stock_list.iterrows():
-                df = collector.get_stock_data(stock_code=row['code'], start_date='20000103', end_date='20100101', stock_name=row['name'])
+                df = collector.get_stock_data(stock_code=row['code'], start_date='20250101', end_date='20250213', stock_name=row['name'])
                 if not df.empty:# 记录处理开始时间
                     processed_df = processor.process_data(df, row['name'])
                     processed_dfs.append(processed_df)
